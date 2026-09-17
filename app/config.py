@@ -59,8 +59,13 @@ class ProductionConfig(Config):
     _db_name = os.environ.get("DB_NAME", "food_donation_prod")
     _cloud_sql_connection = os.environ.get("CLOUD_SQL_CONNECTION_NAME", "")
 
+    # Railway provides mysql:// but PyMySQL requires mysql+pymysql://
+    _raw_db_url = os.environ.get("DATABASE_URL", "")
+    if _raw_db_url.startswith("mysql://"):
+        _raw_db_url = _raw_db_url.replace("mysql://", "mysql+pymysql://", 1)
+
     SQLALCHEMY_DATABASE_URI = (
-        os.environ.get("DATABASE_URL")
+        _raw_db_url
         or (
             f"mysql+pymysql://{_db_user}:{_db_pass}@/{_db_name}"
             f"?unix_socket=/cloudsql/{_cloud_sql_connection}"
