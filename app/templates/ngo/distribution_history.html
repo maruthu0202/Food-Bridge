@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Distribution History{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-800 mb-1">Distribution History</h2>
+      <p class="text-muted mb-0">Record of food distributed to communities and impact generated.</p>
+    </div>
+    <div class="glass-card px-4 py-2 text-center bg-success text-light">
+      <span class="fs-4 fw-800">{{ total_people }}</span>
+      <small class="d-block text-light text-opacity-75">Total People Served</small>
+    </div>
+  </div>
+
+  {% if distributions %}
+    <div class="glass-card table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Food Donation</th>
+            <th>Distributed Quantity</th>
+            <th>People Served</th>
+            <th>Delivered Date</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in distributions %}
+            <tr>
+              <td>#{{ d.id }}</td>
+              <td>
+                <span class="fw-600 text-light">{{ d.pickup_request.donation.food_name }}</span>
+                <br/>
+                <small class="text-muted">Donor: {{ d.pickup_request.donation.donor.display_name }}</small>
+              </td>
+              <td>{{ d.quantity_distributed }} {{ d.quantity_unit }}</td>
+              <td><span class="badge bg-success fs-6">{{ d.people_served }} people</span></td>
+              <td>{{ d.delivered_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td><small class="text-muted">{{ d.remarks or 'N/A' }}</small></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="glass-card p-5 text-center">
+      <i class="bi bi-heartbreak fs-1 text-muted d-block mb-3"></i>
+      <h5>No Distributions Recorded Yet</h5>
+      <p class="text-muted">Complete food pickup requests to log distribution impact here.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

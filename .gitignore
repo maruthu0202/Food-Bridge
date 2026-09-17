@@ -1,0 +1,30 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Environment secrets — NEVER commit
+.env
+
+# Local databases
+*.db
+*.sqlite
+
+# Uploaded files — use cloud storage in production
+uploads/
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS files
+.DS_Store
+Thumbs.db

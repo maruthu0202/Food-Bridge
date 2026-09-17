@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+
+{% block content %}
+<div class="container-xl py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 text-center mb-5">
+      <h1 class="display-5 fw-800">About <span class="text-success">FoodBridge</span></h1>
+      <p class="lead text-muted">
+        FoodBridge is a platform dedicated to eliminating food waste by connecting surplus food
+        from restaurants, hotels, bakeries, and individuals directly to NGOs and shelters that
+        serve communities in need.
+      </p>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-5">
+    <div class="col-md-6">
+      <div class="glass-card p-4 h-100">
+        <i class="bi bi-bullseye text-success display-5 mb-3"></i>
+        <h4 class="fw-700">Our Mission</h4>
+        <p class="text-muted">
+          To create a zero-food-waste ecosystem where every kilogram of edible food finds
+          its way to someone who truly needs it — reducing hunger one donation at a time.
+        </p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="glass-card p-4 h-100">
+        <i class="bi bi-eye text-info display-5 mb-3"></i>
+        <h4 class="fw-700">Our Vision</h4>
+        <p class="text-muted">
+          A world where technology bridges the gap between surplus and scarcity —
+          where no nutritious food is discarded while people go hungry.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-5">
+    <div class="col-md-3 text-center">
+      <div class="glass-card p-4">
+        <h2 class="display-5 fw-800 text-success">500+</h2>
+        <p class="text-muted">Active Donors</p>
+      </div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div class="glass-card p-4">
+        <h2 class="display-5 fw-800 text-warning">150+</h2>
+        <p class="text-muted">Partner NGOs</p>
+      </div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div class="glass-card p-4">
+        <h2 class="display-5 fw-800 text-info">10K+</h2>
+        <p class="text-muted">People Served</p>
+      </div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div class="glass-card p-4">
+        <h2 class="display-5 fw-800 text-danger">5T+</h2>
+        <p class="text-muted">Food Rescued</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center">
+    <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg px-5">
+      <i class="bi bi-heart me-2"></i>Join FoodBridge Today
+    </a>
+  </div>
+</div>
+{% endblock %}

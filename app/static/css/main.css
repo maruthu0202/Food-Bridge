@@ -1,0 +1,93 @@
+/* FoodBridge Modern Dark Theme Stylesheet */
+
+:root {
+  --fb-primary: #10b981;
+  --fb-primary-hover: #059669;
+  --fb-secondary: #6366f1;
+  --fb-dark-bg: #0f172a;
+  --fb-card-bg: rgba(30, 41, 59, 0.7);
+  --fb-card-border: rgba(255, 255, 255, 0.08);
+  --fb-text-muted: #94a3b8;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--fb-dark-bg);
+  color: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+
+/* Navbar */
+#mainNavbar {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--fb-card-border);
+}
+
+.brand-icon {
+  font-size: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #3b82f6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.glass-dropdown {
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--fb-card-border);
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+  background: var(--fb-card-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--fb-card-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Form Controls */
+.form-control, .form-select {
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--fb-card-border);
+  color: #f8fafc;
+  border-radius: 8px;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: rgba(15, 23, 42, 0.8);
+  border-color: var(--fb-primary);
+  color: #f8fafc;
+  box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+}
+
+/* Footer */
+footer {
+  background: rgba(15, 23, 42, 0.9);
+  border-top: 1px solid var(--fb-card-border);
+}

@@ -1,0 +1,52 @@
+# Google Cloud App Engine — ignore these during deployment
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment (GAE installs from requirements.txt automatically)
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# Local dev database (production uses Cloud SQL)
+*.db
+*.sqlite
+*.sqlite3
+
+# Local uploads folder (production uses GCS)
+uploads/
+
+# Tests (not needed in production)
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Dev scripts
+seed.py
+check_db.py
+run.ps1
+db_queries.txt
+
+# IDE and OS files
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Migration scripts (run separately before deploy)
+# migrations/
+
+# Git
+.git/
+.gitignore
+
+# Docs (optional — comment out if you want to keep)
+WORKFLOW.md
+TECH_STACK.md

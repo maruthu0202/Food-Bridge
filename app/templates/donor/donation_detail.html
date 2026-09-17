@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Donation Detail{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+  <div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('donor.my_donations') }}" class="btn btn-outline-secondary me-3">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div class="flex-grow-1">
+      <h2 class="fw-800 mb-0">{{ donation.food_name }}</h2>
+      <small class="text-muted">Donation #{{ donation.id }} · Created {{ donation.created_at | datetime }}</small>
+    </div>
+    <span class="badge bg-{{ donation.status_badge_class }} fs-6 px-3 py-2">{{ donation.status }}</span>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <!-- Food Details Card -->
+      <div class="glass-card p-4 mb-4">
+        <div class="row g-3">
+          {% if image_url %}
+          <div class="col-md-5">
+            <img src="{{ image_url }}" alt="{{ donation.food_name }}" class="img-fluid rounded-3"
+                 style="max-height:260px; width:100%; object-fit:cover;"/>
+          </div>
+          {% endif %}
+          <div class="{{ 'col-md-7' if image_url else 'col-12' }}">
+            <table class="table table-dark table-borderless mb-0">
+              <tr><td class="text-muted fw-600">Food Type</td><td><span class="badge bg-secondary">{{ donation.food_type }}</span></td></tr>
+              <tr><td class="text-muted fw-600">Quantity</td><td>{{ donation.quantity }} {{ donation.quantity_unit }}</td></tr>
+              <tr><td class="text-muted fw-600">Servings</td><td>{{ donation.servings }} people</td></tr>
+              <tr><td class="text-muted fw-600">Prepared At</td><td>{{ donation.prepared_at | datetime }}</td></tr>
+              <tr><td class="text-muted fw-600">Expires At</td>
+                <td class="{{ 'text-danger fw-600' if donation.hours_until_expiry < 3 else ('text-warning' if donation.hours_until_expiry < 12 else '') }}">
+                  {{ donation.expiry_at | datetime }}
+                  <small>({{ donation.expiry_at | time_until }})</small>
+                </td>
+              </tr>
+              <tr><td class="text-muted fw-600">Location</td><td>{{ donation.pickup_address }}</td></tr>
+            </table>
+          </div>
+        </div>
+        {% if donation.description %}
+        <div class="mt-3 pt-3 border-top border-secondary">
+          <p class="mb-0 text-muted">{{ donation.description }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Actions -->
+      {% if donation.status not in ['DELIVERED', 'CANCELLED', 'EXPIRED'] %}
+      <div class="glass-card p-4 mb-4">
+        <h6 class="fw-700 mb-3"><i class="bi bi-gear me-2 text-warning"></i>Actions</h6>
+        <div class="d-flex flex-wrap gap-2">
+          {% if donation.status == 'AVAILABLE' %}
+          <a href="{{ url_for('donor.edit_donation', donation_id=donation.id) }}"
+             class="btn btn-outline-warning"><i class="bi bi-pencil me-1"></i>Edit</a>
+          {% endif %}
+          {% if donation.status not in ['CANCELLED', 'DELIVERED', 'EXPIRED'] %}
+          <form method="POST" action="{{ url_for('donor.cancel_donation', donation_id=donation.id) }}"
+                onsubmit="return confirm('Cancel this donation?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-outline-danger"><i class="bi bi-x-circle me-1"></i>Cancel Donation</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Pickup Requests -->
+      <div class="glass-card p-4">
+        <h5 class="fw-700 mb-3"><i class="bi bi-inbox me-2 text-info"></i>Pickup Requests ({{ pickup_requests|length }})</h5>
+        {% if pickup_requests %}
+          {% for req in pickup_requests %}
+          <div class="request-item p-3 mb-3 rounded-3 border border-secondary">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <strong>{{ req.ngo.display_name }}</strong>
+                <span class="badge bg-{{ req.status_badge_class }} ms-2">{{ req.status }}</span>
+              </div>
+              <small class="text-muted">{{ req.requested_at | datetime }}</small>
+            </div>
+            {% if req.notes %}
+            <p class="text-muted small mb-2"><i class="bi bi-chat-left-text me-1"></i>{{ req.notes }}</p>
+            {% endif %}
+            {% if req.status == 'PENDING' %}
+            <div class="d-flex gap-2">
+              <form method="POST" action="{{ url_for('donor.accept_request', request_id=req.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-success btn-sm"><i class="bi bi-check-circle me-1"></i>Accept</button>
+              </form>
+              <form method="POST" action="{{ url_for('donor.reject_request', request_id=req.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle me-1"></i>Reject</button>
+              </form>
+            </div>
+            {% elif req.status == 'ACCEPTED' %}
+            <form method="POST" action="{{ url_for('donor.mark_ready', request_id=req.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-primary btn-sm"><i class="bi bi-box-seam me-1"></i>Mark Ready for Pickup</button>
+            </form>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="text-center py-4">
+          <i class="bi bi-inbox text-muted display-5 mb-2"></i>
+          <p class="text-muted">No requests yet. NGOs will see this donation and request pickup.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+      {% if donation.latitude and donation.longitude %}
+      <div class="glass-card p-4 mb-4">
+        <h6 class="fw-700 mb-3"><i class="bi bi-geo-alt text-danger me-2"></i>Pickup Location</h6>
+        <div id="detailMap" style="height:200px; border-radius:10px;"></div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if donation.latitude and donation.longitude %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script>
+  const map = L.map('detailMap').setView([{{ donation.latitude }}, {{ donation.longitude }}], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  L.marker([{{ donation.latitude }}, {{ donation.longitude }}])
+    .addTo(map)
+    .bindPopup('{{ donation.pickup_address }}')
+    .openPopup();
+</script>
+{% endif %}
+{% endblock %}

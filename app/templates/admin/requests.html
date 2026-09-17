@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Pickup Requests — Admin{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-800 mb-1">Pickup Requests Management</h2>
+      <p class="text-muted mb-0">Overview of all NGO pickup requests.</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+  </div>
+
+  <div class="glass-card table-responsive mb-4">
+    <table class="table table-dark table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Req ID</th>
+          <th>Food Item</th>
+          <th>NGO</th>
+          <th>Requested Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in pagination.items %}
+          <tr>
+            <td>#{{ r.id }}</td>
+            <td class="fw-600">{{ r.donation.food_name }}</td>
+            <td>{{ r.ngo.display_name }}</td>
+            <td>{{ r.requested_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td><span class="badge bg-{{ r.status_badge_class }}">{{ r.status }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+    <nav>
+      <ul class="pagination justify-content-center">
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+              <a class="page-link" href="{{ url_for('admin.pickup_requests', page=p, status=status_filter) }}">{{ p }}</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+runtime: python312
+
+instance_class: F2
+
+entrypoint: gunicorn -b :$PORT -w 2 --timeout 120 app:app
+
+env_variables:
+  FLASK_ENV: "production"
+  SECRET_KEY: "CHANGE-ME-USE-A-LONG-RANDOM-STRING"
+  # ---- Google Cloud SQL ----
+  DB_USER: "foodbridge_user"
+  DB_PASS: "CHANGE-ME-DB-PASSWORD"
+  DB_NAME: "food_donation_prod"
+  CLOUD_SQL_CONNECTION_NAME: "YOUR_PROJECT_ID:YOUR_REGION:YOUR_INSTANCE_NAME"
+  # ---- Google Cloud Storage ----
+  GOOGLE_CLOUD_PROJECT: "foodbridge-mini-app"
+  GCS_BUCKET_NAME: "foodbridge-mini-app-storage"
+
+beta_settings:
+  cloud_sql_instances: "YOUR_PROJECT_ID:YOUR_REGION:YOUR_INSTANCE_NAME"
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 3
+  target_cpu_utilization: 0.65
+
+handlers:
+  - url: /static
+    static_dir: app/static
+    secure: always
+
+  - url: /.*
+    script: auto
+    secure: always

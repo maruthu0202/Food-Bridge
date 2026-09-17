@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section position-relative overflow-hidden">
+  <div class="hero-bg-animation"></div>
+  <div class="container-xl py-5">
+    <div class="row align-items-center min-vh-70 py-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <div class="hero-badge mb-3">
+          <span class="badge rounded-pill bg-success bg-opacity-20 text-success border border-success border-opacity-30 px-3 py-2">
+            <i class="bi bi-heart-pulse me-1"></i> Fighting Food Waste Since 2025
+          </span>
+        </div>
+        <h1 class="display-4 fw-800 mb-4 lh-1">
+          Turn <span class="gradient-text">Surplus Food</span><br/>
+          Into <span class="text-success">Hope</span>
+        </h1>
+        <p class="lead text-muted mb-4">
+          FoodBridge connects restaurants, hotels, and individuals with verified NGOs and shelters
+          to rescue food before it goes to waste — serving communities in real time.
+        </p>
+        <div class="d-flex flex-wrap gap-3 mb-5">
+          <a href="{{ url_for('auth.register') }}?role=DONOR" class="btn btn-success btn-lg px-4 fw-600">
+            <i class="bi bi-gift me-2"></i>Donate Food
+          </a>
+          <a href="{{ url_for('auth.register') }}?role=NGO" class="btn btn-outline-light btn-lg px-4 fw-600">
+            <i class="bi bi-building me-2"></i>I'm an NGO
+          </a>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row g-3">
+          <div class="col-auto">
+            <div class="stat-chip">
+              <span class="stat-number text-success fw-800">{{ total_donations }}+</span>
+              <span class="stat-label text-muted">Donations Delivered</span>
+            </div>
+          </div>
+          <div class="col-auto">
+            <div class="stat-chip">
+              <span class="stat-number text-warning fw-800">{{ total_people }}+</span>
+              <span class="stat-label text-muted">People Served</span>
+            </div>
+          </div>
+          <div class="col-auto">
+            <div class="stat-chip">
+              <span class="stat-number text-info fw-800">0 kg</span>
+              <span class="stat-label text-muted">Food Wasted</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center mt-5 mt-lg-0">
+        <div class="hero-illustration">
+          <div class="floating-card card-1">
+            <i class="bi bi-check-circle-fill text-success"></i>
+            <span>Pickup confirmed!</span>
+          </div>
+          <div class="floating-card card-2">
+            <i class="bi bi-geo-alt-fill text-danger"></i>
+            <span>3 donations nearby</span>
+          </div>
+          <div class="hero-circle">
+            <i class="bi bi-heart-fill display-1 text-danger opacity-75"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5 how-it-works">
+  <div class="container-xl">
+    <div class="text-center mb-5">
+      <h2 class="fw-800 display-6">How It <span class="text-success">Works</span></h2>
+      <p class="text-muted lead">Three simple steps to make a difference</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="step-card h-100 text-center p-4">
+          <div class="step-icon bg-success bg-opacity-10 text-success mb-3">
+            <i class="bi bi-person-plus display-5"></i>
+          </div>
+          <div class="step-number">01</div>
+          <h4 class="fw-700">Register & List</h4>
+          <p class="text-muted">Donors register and post their surplus food with photos, quantity, and pickup location.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="step-card h-100 text-center p-4">
+          <div class="step-icon bg-warning bg-opacity-10 text-warning mb-3">
+            <i class="bi bi-geo-alt display-5"></i>
+          </div>
+          <div class="step-number">02</div>
+          <h4 class="fw-700">Discover & Request</h4>
+          <p class="text-muted">NGOs browse nearby available donations sorted by distance and urgency, then request pickup.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="step-card h-100 text-center p-4">
+          <div class="step-icon bg-info bg-opacity-10 text-info mb-3">
+            <i class="bi bi-people display-5"></i>
+          </div>
+          <div class="step-number">03</div>
+          <h4 class="fw-700">Collect & Serve</h4>
+          <p class="text-muted">Food is picked up and distributed to those in need. The platform tracks every impact.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Banner -->
+<section class="cta-banner py-5 my-5">
+  <div class="container-xl text-center">
+    <h2 class="fw-800 display-6 mb-3">Ready to Make a <span class="text-success">Difference?</span></h2>
+    <p class="text-muted lead mb-4">Join hundreds of donors and NGOs already using FoodBridge.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-success btn-lg px-5 fw-600">
+      <i class="bi bi-arrow-right-circle me-2"></i>Get Started Free
+    </a>
+  </div>
+</section>
+{% endblock %}

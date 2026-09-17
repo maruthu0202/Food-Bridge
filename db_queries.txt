@@ -1,0 +1,366 @@
+================================================================
+  FOODBRIDGE -- DATABASE SQL QUERIES REFERENCE
+  Database: SQLite (dev) / MySQL (production)
+  File: db_queries.txt
+================================================================
+
+
+----------------------------------------------------------------
+  1. CONNECTION & DATABASE INFO
+----------------------------------------------------------------
+
+-- Check current SQLite database file path
+PRAGMA database_list;
+
+-- Check SQLite version
+SELECT sqlite_version();
+
+-- List all tables in the database
+SELECT name FROM sqlite_master
+WHERE type = 'table'
+ORDER BY name;
+
+-- Check schema (column info) for a specific table
+PRAGMA table_info(users);
+PRAGMA table_info(donations);
+PRAGMA table_info(pickup_requests);
+PRAGMA table_info(distributions);
+PRAGMA table_info(audit_logs);
+
+
+----------------------------------------------------------------
+  2. USERS TABLE QUERIES
+----------------------------------------------------------------
+
+-- Count total users
+SELECT COUNT(*) AS total_users FROM users;
+
+-- Count users by role
+SELECT role, COUNT(*) AS count
+FROM users
+GROUP BY role;
+
+-- List all users
+SELECT id, email, full_name, role, is_active, is_verified, created_at
+FROM users
+ORDER BY created_at DESC;
+
+-- List only active users
+SELECT id, email, role, is_active
+FROM users
+WHERE is_active = 1;
+
+-- List only donors
+SELECT id, email, full_name, phone
+FROM users
+WHERE role = 'DONOR';
+
+-- List only NGOs
+SELECT id, email, org_name, org_description
+FROM users
+WHERE role = 'NGO';
+
+-- List only admins
+SELECT id, email, full_name
+FROM users
+WHERE role = 'ADMIN';
+
+-- Search user by email
+SELECT * FROM users
+WHERE email = 'admin@foodbridge.org';
+
+-- Count verified vs unverified users
+SELECT is_verified, COUNT(*) AS count
+FROM users
+GROUP BY is_verified;
+
+-- Users who have logged in recently
+SELECT id, email, role, last_login_at
+FROM users
+WHERE last_login_at IS NOT NULL
+ORDER BY last_login_at DESC;
+
+
+----------------------------------------------------------------
+  3. DONATIONS TABLE QUERIES
+----------------------------------------------------------------
+
+-- Count total donations
+SELECT COUNT(*) AS total_donations FROM donations;
+
+-- Count donations by status
+SELECT status, COUNT(*) AS count
+FROM donations
+GROUP BY status
+ORDER BY count DESC;
+
+-- Count donations by food type
+SELECT food_type, COUNT(*) AS count
+FROM donations
+GROUP BY food_type
+ORDER BY count DESC;
+
+-- List all donations with donor details
+SELECT
+  d.id,
+  d.food_name,
+  d.food_type,
+  d.quantity,
+  d.quantity_unit,
+  d.servings,
+  d.status,
+  d.expiry_at,
+  u.email AS donor_email
+FROM donations d
+JOIN users u ON d.donor_id = u.id
+ORDER BY d.created_at DESC;
+
+-- List only AVAILABLE donations
+SELECT id, food_name, food_type, quantity, servings, expiry_at, pickup_address
+FROM donations
+WHERE status = 'AVAILABLE'
+ORDER BY expiry_at ASC;
+
+-- List expired donations
+SELECT id, food_name, expiry_at, status
+FROM donations
+WHERE expiry_at < DATETIME('now')
+  AND status IN ('AVAILABLE', 'REQUESTED');
+
+-- Total servings available
+SELECT SUM(servings) AS total_servings_available
+FROM donations
+WHERE status = 'AVAILABLE';
+
+-- Donations expiring within 6 hours
+SELECT id, food_name, expiry_at, status
+FROM donations
+WHERE expiry_at BETWEEN DATETIME('now') AND DATETIME('now', '+6 hours')
+  AND status = 'AVAILABLE';
+
+-- Donations per donor
+SELECT u.email, COUNT(d.id) AS total_donations
+FROM donations d
+JOIN users u ON d.donor_id = u.id
+GROUP BY d.donor_id
+ORDER BY total_donations DESC;
+
+-- Delivered donations only
+SELECT d.id, d.food_name, d.servings, u.email AS donor
+FROM donations d
+JOIN users u ON d.donor_id = u.id
+WHERE d.status = 'DELIVERED';
+
+
+----------------------------------------------------------------
+  4. PICKUP REQUESTS TABLE QUERIES
+----------------------------------------------------------------
+
+-- Count total pickup requests
+SELECT COUNT(*) AS total_requests FROM pickup_requests;
+
+-- Count pickup requests by status
+SELECT status, COUNT(*) AS count
+FROM pickup_requests
+GROUP BY status
+ORDER BY count DESC;
+
+-- List all requests with donation and NGO details
+SELECT
+  pr.id,
+  pr.status,
+  pr.requested_at,
+  pr.approved_at,
+  pr.pickup_time,
+  d.food_name,
+  u.email AS ngo_email
+FROM pickup_requests pr
+JOIN donations d ON pr.donation_id = d.id
+JOIN users u ON pr.ngo_id = u.id
+ORDER BY pr.requested_at DESC;
+
+-- Pending requests only
+SELECT pr.id, d.food_name, u.email AS ngo_email, pr.requested_at
+FROM pickup_requests pr
+JOIN donations d ON pr.donation_id = d.id
+JOIN users u ON pr.ngo_id = u.id
+WHERE pr.status = 'PENDING'
+ORDER BY pr.requested_at ASC;
+
+-- Completed requests
+SELECT pr.id, d.food_name, u.email AS ngo_email, pr.pickup_time
+FROM pickup_requests pr
+JOIN donations d ON pr.donation_id = d.id
+JOIN users u ON pr.ngo_id = u.id
+WHERE pr.status = 'COMPLETED';
+
+-- Requests per NGO
+SELECT u.email AS ngo_email, COUNT(pr.id) AS total_requests
+FROM pickup_requests pr
+JOIN users u ON pr.ngo_id = u.id
+GROUP BY pr.ngo_id
+ORDER BY total_requests DESC;
+
+-- Check if a donation already has an active request
+SELECT * FROM pickup_requests
+WHERE donation_id = 1
+  AND status IN ('PENDING', 'ACCEPTED', 'READY_FOR_PICKUP', 'PICKED_UP');
+
+
+----------------------------------------------------------------
+  5. DISTRIBUTIONS TABLE QUERIES
+----------------------------------------------------------------
+
+-- Count total distributions
+SELECT COUNT(*) AS total_distributions FROM distributions;
+
+-- Total people served across all distributions
+SELECT SUM(people_served) AS total_people_served
+FROM distributions;
+
+-- Total quantity distributed
+SELECT SUM(quantity_distributed) AS total_quantity,
+       quantity_unit
+FROM distributions
+GROUP BY quantity_unit;
+
+-- Full distribution details with NGO and donation info
+SELECT
+  dist.id,
+  dist.quantity_distributed,
+  dist.quantity_unit,
+  dist.people_served,
+  dist.delivered_at,
+  dist.remarks,
+  d.food_name,
+  u.email AS ngo_email
+FROM distributions dist
+JOIN pickup_requests pr ON dist.pickup_request_id = pr.id
+JOIN donations d ON pr.donation_id = d.id
+JOIN users u ON pr.ngo_id = u.id
+ORDER BY dist.delivered_at DESC;
+
+-- People served per NGO
+SELECT u.email AS ngo_email, SUM(dist.people_served) AS total_people
+FROM distributions dist
+JOIN pickup_requests pr ON dist.pickup_request_id = pr.id
+JOIN users u ON pr.ngo_id = u.id
+GROUP BY pr.ngo_id
+ORDER BY total_people DESC;
+
+-- Monthly distribution summary
+SELECT
+  strftime('%Y-%m', delivered_at) AS month,
+  COUNT(*) AS distributions,
+  SUM(people_served) AS people_served,
+  SUM(quantity_distributed) AS quantity
+FROM distributions
+GROUP BY month
+ORDER BY month DESC;
+
+
+----------------------------------------------------------------
+  6. AUDIT LOGS TABLE QUERIES
+----------------------------------------------------------------
+
+-- Count total audit log entries
+SELECT COUNT(*) AS total_logs FROM audit_logs;
+
+-- Count logs by action type
+SELECT action, COUNT(*) AS count
+FROM audit_logs
+GROUP BY action
+ORDER BY count DESC;
+
+-- Recent 20 audit logs
+SELECT al.id, al.action, al.details, al.ip_address, al.created_at,
+       u.email AS user_email
+FROM audit_logs al
+LEFT JOIN users u ON al.user_id = u.id
+ORDER BY al.created_at DESC
+LIMIT 20;
+
+-- Failed login attempts
+SELECT action, details, ip_address, created_at
+FROM audit_logs
+WHERE action = 'login_failed'
+ORDER BY created_at DESC;
+
+-- Successful logins
+SELECT al.created_at, u.email, al.ip_address
+FROM audit_logs al
+JOIN users u ON al.user_id = u.id
+WHERE al.action = 'login_success'
+ORDER BY al.created_at DESC;
+
+-- Donation creation events
+SELECT al.created_at, u.email, al.details
+FROM audit_logs al
+JOIN users u ON al.user_id = u.id
+WHERE al.action = 'donation_created'
+ORDER BY al.created_at DESC;
+
+
+----------------------------------------------------------------
+  7. CROSS-TABLE / IMPACT QUERIES
+----------------------------------------------------------------
+
+-- Full platform impact summary
+SELECT
+  (SELECT COUNT(*) FROM users WHERE role = 'DONOR') AS total_donors,
+  (SELECT COUNT(*) FROM users WHERE role = 'NGO')   AS total_ngos,
+  (SELECT COUNT(*) FROM donations)                   AS total_donations,
+  (SELECT COUNT(*) FROM donations WHERE status = 'AVAILABLE') AS available,
+  (SELECT COUNT(*) FROM donations WHERE status = 'DELIVERED') AS delivered,
+  (SELECT COUNT(*) FROM pickup_requests)             AS total_requests,
+  (SELECT IFNULL(SUM(people_served), 0) FROM distributions) AS people_served;
+
+-- Top donors by delivered donations
+SELECT u.email, COUNT(d.id) AS delivered_count
+FROM donations d
+JOIN users u ON d.donor_id = u.id
+WHERE d.status = 'DELIVERED'
+GROUP BY d.donor_id
+ORDER BY delivered_count DESC;
+
+-- Top NGOs by people served
+SELECT u.org_name, u.email, SUM(dist.people_served) AS people_served
+FROM distributions dist
+JOIN pickup_requests pr ON dist.pickup_request_id = pr.id
+JOIN users u ON pr.ngo_id = u.id
+GROUP BY pr.ngo_id
+ORDER BY people_served DESC;
+
+-- Donations with no pickup request yet
+SELECT d.id, d.food_name, d.status, d.expiry_at
+FROM donations d
+WHERE d.id NOT IN (SELECT DISTINCT donation_id FROM pickup_requests)
+  AND d.status = 'AVAILABLE';
+
+-- Donations that expired without being claimed
+SELECT id, food_name, expiry_at, status
+FROM donations
+WHERE status = 'EXPIRED';
+
+
+----------------------------------------------------------------
+  8. HOW TO RUN THESE QUERIES
+----------------------------------------------------------------
+
+METHOD 1: SQLite Command Line (Windows)
+  > cd "c:\Users\Shiyam S\Downloads\cloud mini\cloud mini"
+  > sqlite3 food_donation_dev.db
+  > sqlite> .tables
+  > sqlite> SELECT * FROM users;
+  > sqlite> .quit
+
+METHOD 2: Run via Python script
+  > .\venv\Scripts\python.exe check_db.py
+
+METHOD 3: VS Code SQLite Extension
+  - Install "SQLite Viewer" extension in VS Code
+  - Open food_donation_dev.db file directly
+
+================================================================
+  END OF QUERY REFERENCE
+================================================================

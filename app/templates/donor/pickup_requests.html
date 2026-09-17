@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Pickup Requests{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+  <h2 class="fw-800 mb-4">Pickup Requests</h2>
+
+  {% if pagination.items %}
+  <div class="glass-card overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0">
+        <thead class="border-bottom border-secondary">
+          <tr>
+            <th>NGO</th>
+            <th>Donation</th>
+            <th>Notes</th>
+            <th>Requested</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in pagination.items %}
+          <tr>
+            <td>
+              <strong>{{ req.ngo.display_name }}</strong>
+              <br/><small class="text-muted">{{ req.ngo.email }}</small>
+            </td>
+            <td>
+              <a href="{{ url_for('donor.donation_detail', donation_id=req.donation_id) }}"
+                 class="text-success text-decoration-none fw-600">
+                {{ req.donation.food_name }}
+              </a>
+            </td>
+            <td class="text-muted small">{{ req.notes or '—' }}</td>
+            <td class="text-muted small">{{ req.requested_at | datetime }}</td>
+            <td><span class="badge bg-{{ req.status_badge_class }}">{{ req.status }}</span></td>
+            <td class="text-end">
+              {% if req.status == 'PENDING' %}
+              <form method="POST" action="{{ url_for('donor.accept_request', request_id=req.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-success btn-sm me-1"><i class="bi bi-check-circle me-1"></i>Accept</button>
+              </form>
+              <form method="POST" action="{{ url_for('donor.reject_request', request_id=req.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle me-1"></i>Reject</button>
+              </form>
+              {% elif req.status == 'ACCEPTED' %}
+              <form method="POST" action="{{ url_for('donor.mark_ready', request_id=req.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-primary btn-sm"><i class="bi bi-box-seam me-1"></i>Mark Ready</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-5 glass-card">
+    <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+    <p class="text-muted">No pickup requests yet. Create donations to receive requests from NGOs.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

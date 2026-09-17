@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}My Donations{% endblock %}
+
+{% block content %}
+<div class="container-xl py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-800 mb-0">My Donations</h2>
+    <a href="{{ url_for('donor.create_donation') }}" class="btn btn-success fw-600">
+      <i class="bi bi-plus-circle me-2"></i>New Donation
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="glass-card p-3 mb-4">
+    <form method="GET" class="d-flex flex-wrap gap-2 align-items-end">
+      <div>
+        <label class="form-label small fw-600 mb-1">Status</label>
+        <select class="form-select form-select-sm bg-dark border-secondary text-white" name="status">
+          <option value="">All Statuses</option>
+          {% for s in ['AVAILABLE','REQUESTED','ACCEPTED','READY_FOR_PICKUP','PICKED_UP','DELIVERED','CANCELLED','EXPIRED'] %}
+          <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-outline-success btn-sm">Filter</button>
+      <a href="{{ url_for('donor.my_donations') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+    </form>
+  </div>
+
+  {% if pagination.items %}
+  <div class="glass-card overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-dark table-hover align-middle mb-0">
+        <thead class="border-bottom border-secondary">
+          <tr>
+            <th>#</th>
+            <th>Food Name</th>
+            <th>Type</th>
+            <th>Qty</th>
+            <th>Servings</th>
+            <th>Expires</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in pagination.items %}
+          <tr>
+            <td class="text-muted">{{ d.id }}</td>
+            <td class="fw-600">{{ d.food_name }}</td>
+            <td><span class="badge bg-secondary">{{ d.food_type }}</span></td>
+            <td>{{ d.quantity }} {{ d.quantity_unit }}</td>
+            <td>{{ d.servings }}</td>
+            <td class="{{ 'text-danger' if d.hours_until_expiry < 3 else ('text-warning' if d.hours_until_expiry < 12 else 'text-muted') }}">
+              {{ d.expiry_at | time_until }}
+            </td>
+            <td><span class="badge bg-{{ d.status_badge_class }}">{{ d.status }}</span></td>
+            <td class="text-end">
+              <a href="{{ url_for('donor.donation_detail', donation_id=d.id) }}"
+                 class="btn btn-sm btn-outline-light me-1" title="View">
+                <i class="bi bi-eye"></i>
+              </a>
+              {% if d.status == 'AVAILABLE' %}
+              <a href="{{ url_for('donor.edit_donation', donation_id=d.id) }}"
+                 class="btn btn-sm btn-outline-warning me-1" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination.pages > 1 %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+        <a class="page-link bg-dark border-secondary text-white" href="?page={{ pagination.prev_num }}&status={{ status_filter }}">Previous</a>
+      </li>
+      {% for p in pagination.iter_pages() %}
+        {% if p %}
+        <li class="page-item {{ 'active' if p == pagination.page }}">
+          <a class="page-link bg-dark border-secondary text-white" href="?page={{ p }}&status={{ status_filter }}">{{ p }}</a>
+        </li>
+        {% endif %}
+      {% endfor %}
+      <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+        <a class="page-link bg-dark border-secondary text-white" href="?page={{ pagination.next_num }}&status={{ status_filter }}">Next</a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="text-center py-5 glass-card">
+    <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+    <p class="text-muted fs-5">No donations found.</p>
+    <a href="{{ url_for('donor.create_donation') }}" class="btn btn-success mt-2">Create Your First Donation</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

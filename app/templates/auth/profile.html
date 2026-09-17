@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="d-flex align-items-center mb-4">
+        <div class="user-avatar-lg me-3">{{ current_user.display_name[0].upper() }}</div>
+        <div>
+          <h2 class="fw-800 mb-0">{{ current_user.display_name }}</h2>
+          <span class="badge bg-{{ 'success' if current_user.is_donor else ('info' if current_user.is_ngo else 'warning') }} mt-1">
+            {{ current_user.role }}
+          </span>
+        </div>
+      </div>
+
+      <div class="glass-card p-4">
+        <form method="POST" action="{{ url_for('auth.profile') }}" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+          <h5 class="fw-700 mb-3 border-bottom border-secondary pb-2">
+            <i class="bi bi-person me-2 text-success"></i>Personal Information
+          </h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-600">Full Name *</label>
+              <input type="text" class="form-control bg-dark border-secondary text-white"
+                     name="full_name" required maxlength="150"
+                     value="{{ current_user.full_name }}"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Email</label>
+              <input type="email" class="form-control bg-dark border-secondary text-white"
+                     value="{{ current_user.email }}" disabled/>
+              <div class="form-text text-muted">Email cannot be changed.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Phone</label>
+              <input type="tel" class="form-control bg-dark border-secondary text-white"
+                     name="phone" maxlength="20"
+                     value="{{ current_user.phone or '' }}"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Address</label>
+              <input type="text" class="form-control bg-dark border-secondary text-white"
+                     name="address" maxlength="500"
+                     value="{{ current_user.address or '' }}"/>
+            </div>
+            {% if current_user.is_ngo %}
+            <div class="col-md-6">
+              <label class="form-label fw-600">Organisation Name</label>
+              <input type="text" class="form-control bg-dark border-secondary text-white"
+                     name="org_name" maxlength="200"
+                     value="{{ current_user.org_name or '' }}"/>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-600">Organisation Description</label>
+              <textarea class="form-control bg-dark border-secondary text-white"
+                        name="org_description" rows="3">{{ current_user.org_description or '' }}</textarea>
+            </div>
+            {% endif %}
+          </div>
+
+          <h5 class="fw-700 mb-3 border-bottom border-secondary pb-2">
+            <i class="bi bi-shield-lock me-2 text-warning"></i>Change Password
+            <small class="text-muted fw-400 fs-6">(leave blank to keep current)</small>
+          </h5>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-600">New Password</label>
+              <input type="password" class="form-control bg-dark border-secondary text-white"
+                     name="new_password" autocomplete="new-password" placeholder="••••••••"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Confirm New Password</label>
+              <input type="password" class="form-control bg-dark border-secondary text-white"
+                     name="confirm_password" autocomplete="new-password" placeholder="••••••••"/>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success px-4 fw-600">
+            <i class="bi bi-save me-2"></i>Save Changes
+          </button>
+        </form>
+      </div>
+
+      <div class="glass-card p-4 mt-4">
+        <h6 class="fw-600 text-muted mb-2"><i class="bi bi-info-circle me-2"></i>Account Details</h6>
+        <table class="table table-sm table-dark table-borderless mb-0">
+          <tr><td class="text-muted">Member Since</td><td>{{ current_user.created_at | datetime }}</td></tr>
+          <tr><td class="text-muted">Last Login</td><td>{{ current_user.last_login_at | datetime }}</td></tr>
+          <tr><td class="text-muted">Account Status</td>
+            <td><span class="badge bg-{{ 'success' if current_user.is_active else 'danger' }}">
+              {{ 'Active' if current_user.is_active else 'Suspended' }}</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

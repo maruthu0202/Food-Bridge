@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Edit Donation{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('donor.donation_detail', donation_id=donation.id) }}" class="btn btn-outline-secondary me-3">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <h2 class="fw-800 mb-0">Edit Donation</h2>
+  </div>
+
+  <form method="POST" action="{{ url_for('donor.edit_donation', donation_id=donation.id) }}"
+        enctype="multipart/form-data" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="latitude" id="latInput" value="{{ donation.latitude or '' }}"/>
+    <input type="hidden" name="longitude" id="lonInput" value="{{ donation.longitude or '' }}"/>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="glass-card p-4 mb-4">
+          <h5 class="fw-700 mb-3 border-bottom border-secondary pb-2">Food Details</h5>
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label fw-600">Food Name *</label>
+              <input type="text" class="form-control bg-dark border-secondary text-white"
+                     name="food_name" required maxlength="200" value="{{ donation.food_name }}"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-600">Food Type *</label>
+              <select class="form-select bg-dark border-secondary text-white" name="food_type" required>
+                {% for ft in food_types %}
+                <option value="{{ ft }}" {% if donation.food_type == ft %}selected{% endif %}>{{ ft }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-600">Description</label>
+              <textarea class="form-control bg-dark border-secondary text-white" name="description" rows="3">{{ donation.description or '' }}</textarea>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-600">Quantity *</label>
+              <input type="number" class="form-control bg-dark border-secondary text-white"
+                     name="quantity" required min="0.1" step="0.1" value="{{ donation.quantity }}"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-600">Unit *</label>
+              <select class="form-select bg-dark border-secondary text-white" name="quantity_unit" required>
+                {% for unit in units %}
+                <option value="{{ unit }}" {% if donation.quantity_unit == unit %}selected{% endif %}>{{ unit }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-600">Servings *</label>
+              <input type="number" class="form-control bg-dark border-secondary text-white"
+                     name="servings" required min="1" value="{{ donation.servings }}"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Prepared At *</label>
+              <input type="datetime-local" class="form-control bg-dark border-secondary text-white"
+                     name="prepared_at" required
+                     value="{{ donation.prepared_at.strftime('%Y-%m-%dT%H:%M') }}"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Expires At *</label>
+              <input type="datetime-local" class="form-control bg-dark border-secondary text-white"
+                     name="expiry_at" required
+                     value="{{ donation.expiry_at.strftime('%Y-%m-%dT%H:%M') }}"/>
+            </div>
+          </div>
+        </div>
+        <div class="glass-card p-4">
+          <h5 class="fw-700 mb-3 border-bottom border-secondary pb-2">Pickup Location</h5>
+          <div class="mb-3">
+            <label class="form-label fw-600">Pickup Address *</label>
+            <input type="text" class="form-control bg-dark border-secondary text-white"
+                   name="pickup_address" required id="addressInput" value="{{ donation.pickup_address }}"/>
+          </div>
+          <button type="button" class="btn btn-outline-info btn-sm mb-2" id="geocodeBtn">
+            <i class="bi bi-search me-1"></i>Update on Map
+          </button>
+          <div id="pickupMap" style="height:200px; border-radius:12px;"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="glass-card p-4 mb-4">
+          <h5 class="fw-700 mb-3">Update Food Photo</h5>
+          <input type="file" class="form-control bg-dark border-secondary text-white"
+                 name="image" accept=".jpg,.jpeg,.png,.gif,.webp"/>
+          <div class="form-text text-muted">Leave blank to keep current image.</div>
+        </div>
+        <button type="submit" class="btn btn-warning w-100 btn-lg fw-600">
+          <i class="bi bi-save me-2"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const initLat = {{ donation.latitude or 20.5937 }};
+  const initLon = {{ donation.longitude or 78.9629 }};
+  const map = L.map('pickupMap').setView([initLat, initLon], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  let marker = L.marker([initLat, initLon]).addTo(map);
+
+  function setMarker(lat, lon) {
+    marker.setLatLng([lat, lon]);
+    map.setView([lat, lon], 15);
+    document.getElementById('latInput').value = lat;
+    document.getElementById('lonInput').value = lon;
+  }
+
+  map.on('click', e => setMarker(e.latlng.lat, e.latlng.lng));
+
+  document.getElementById('geocodeBtn').addEventListener('click', () => {
+    const addr = document.getElementById('addressInput').value;
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}`)
+      .then(r => r.json())
+      .then(d => { if (d.length) setMarker(parseFloat(d[0].lat), parseFloat(d[0].lon)); });
+  });
+</script>
+{% endblock %}

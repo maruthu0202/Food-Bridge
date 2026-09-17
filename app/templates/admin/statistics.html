@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Platform Statistics — Admin{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-800 mb-1">Platform Impact Statistics</h2>
+      <p class="text-muted mb-0">Detailed analytics on food distributions and food type categories.</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Monthly Distributions Breakdown -->
+    <div class="col-lg-6">
+      <div class="glass-card p-4 h-100">
+        <h5 class="fw-700 mb-3"><i class="bi bi-calendar3 me-2 text-primary"></i>Monthly Distribution Impact</h5>
+        {% if monthly %}
+          <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Year / Month</th>
+                  <th>Distributions</th>
+                  <th>Quantity</th>
+                  <th>People Served</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in monthly %}
+                  <tr>
+                    <td>{{ m.year|int }} / {{ "%02d"|format(m.month|int) }}</td>
+                    <td>{{ m.count }}</td>
+                    <td>{{ m.quantity|round(1) }}</td>
+                    <td><strong class="text-success">{{ m.people|int }}</strong></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">No monthly distribution data recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Food Category Breakdown -->
+    <div class="col-lg-6">
+      <div class="glass-card p-4 h-100">
+        <h5 class="fw-700 mb-3"><i class="bi bi-pie-chart me-2 text-success"></i>Food Type Distribution</h5>
+        {% if food_type_stats %}
+          <div class="list-group list-group-flush bg-transparent">
+            {% for item in food_type_stats %}
+              <div class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between align-items-center px-0">
+                <span>{{ item.food_type }}</span>
+                <span class="badge bg-success rounded-pill fs-6">{{ item.count }} delivered</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted">No completed food category data yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

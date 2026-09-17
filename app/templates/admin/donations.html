@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Donations — Admin{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-800 mb-1">Donations Management</h2>
+      <p class="text-muted mb-0">View and manage all food donations posted on FoodBridge.</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+  </div>
+
+  <div class="glass-card table-responsive mb-4">
+    <table class="table table-dark table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Food Name</th>
+          <th>Type</th>
+          <th>Donor</th>
+          <th>Servings</th>
+          <th>Expiry Date</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in pagination.items %}
+          <tr>
+            <td>#{{ d.id }}</td>
+            <td class="fw-600">{{ d.food_name }}</td>
+            <td>{{ d.food_type }}</td>
+            <td>{{ d.donor.display_name }}</td>
+            <td>{{ d.servings }}</td>
+            <td>{{ d.expiry_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td><span class="badge bg-{{ d.status_badge_class }}">{{ d.status }}</span></td>
+            <td class="text-end">
+              {% if d.status not in ['DELIVERED', 'CANCELLED', 'EXPIRED'] %}
+                <form action="{{ url_for('admin.admin_cancel_donation', donation_id=d.id) }}" method="post" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this donation?')">
+                    Cancel
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+    <nav>
+      <ul class="pagination justify-content-center">
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+              <a class="page-link" href="{{ url_for('admin.donations', page=p, status=status_filter) }}">{{ p }}</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
+{% endblock %}

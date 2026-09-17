@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}All Distributions — Admin{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-800 mb-1">Distribution Records</h2>
+      <p class="text-muted mb-0">Verified distribution impact logs across all participating NGOs.</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i> Dashboard</a>
+  </div>
+
+  <div class="glass-card table-responsive mb-4">
+    <table class="table table-dark table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Dist ID</th>
+          <th>NGO</th>
+          <th>Food Item</th>
+          <th>Quantity</th>
+          <th>People Served</th>
+          <th>Delivered Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in pagination.items %}
+          <tr>
+            <td>#{{ d.id }}</td>
+            <td class="fw-600">{{ d.pickup_request.ngo.display_name }}</td>
+            <td>{{ d.pickup_request.donation.food_name }}</td>
+            <td>{{ d.quantity_distributed }} {{ d.quantity_unit }}</td>
+            <td><span class="badge bg-success fs-6">{{ d.people_served }} people</span></td>
+            <td>{{ d.delivered_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+    <nav>
+      <ul class="pagination justify-content-center">
+        {% for p in pagination.iter_pages() %}
+          {% if p %}
+            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+              <a class="page-link" href="{{ url_for('admin.distributions', page=p) }}">{{ p }}</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
+{% endblock %}
